@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class WalkToTribe : MiniGames
 {
@@ -16,9 +17,14 @@ public class WalkToTribe : MiniGames
     private float _nextXPos;
     private bool _returnStep;
     private float _direction;
-    private AudioClip[] _clips;
 
     [SerializeField] private GameObject _opposite;
+
+
+    [SerializeField] Sprite[] _astroSprites, _alienSprites;
+    private int _spritesLine;
+
+    [SerializeField] private AudioClip _noClip;
 
     public override void HideMiniGame()
     {
@@ -44,6 +50,7 @@ public class WalkToTribe : MiniGames
     }
     private void Next()
     {
+        NextSprites();
         _mouse.SetActive(false);
         if (_moveClicks < _maxMoveClick)
         {
@@ -73,8 +80,16 @@ public class WalkToTribe : MiniGames
         if(_moveClicks == _maxMoveClick)
         {
             _opposite.SetActive(true);
+            AudioManager.Instance.PlayAudio(_noClip);
         }
 
+    }
+    private void NextSprites()
+    {
+        if (_spritesLine == _astroSprites.Length) return;
+
+        _astro.GetComponent<Image>().sprite = _astroSprites[_spritesLine];
+        _opposite.transform.parent.GetComponent<Image>().sprite = _alienSprites[_spritesLine++];
     }
     private void MoveAstro()
     {

@@ -21,6 +21,7 @@ public class AudioManager : MonoBehaviour
         if (!_sources[_line].isPlaying)
         {
             _sources[_line].clip = clip;
+            _sources[_line].loop = false;
             _sources[_line].Play();
             _line = (_line + 1) % _sources.Count;
         }
@@ -31,7 +32,6 @@ public class AudioManager : MonoBehaviour
     }
     public void PlayRepeatAudio(AudioClip clip)
     {
-        Debug.Log("START: " + clip);
         if (!_sources[_line].isPlaying)
         {
             _sources[_line].loop = true;
@@ -46,7 +46,6 @@ public class AudioManager : MonoBehaviour
     }
     public void StopAudio(AudioClip clip)
     {
-        Debug.Log("STOP: " + clip);
         for (int i = 0; i < _sources.Count; i++)
             if (_sources[i].clip == clip)
                 _sources[i].Stop();

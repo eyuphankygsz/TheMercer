@@ -19,6 +19,12 @@ public class SpaceMove : MiniGames
 
     private int _collectedCount = 0;
 
+    [SerializeField] private AudioClip _boostSound;
+    private bool _boostPlaying;
+
+
+    [SerializeField] private AudioClip _radioCollect, _planetLand;
+
     public override void HideMiniGame()
     {
         throw new System.NotImplementedException();
@@ -31,7 +37,6 @@ public class SpaceMove : MiniGames
 
     public override void MiniUpdate()
     {
-        Debug.Log("UPDATE");
         RotateRocket();
         uiShake.Shake();
 
@@ -44,10 +49,12 @@ public class SpaceMove : MiniGames
         if (!_done && Vector2.Distance(_rocketHolder.anchoredPosition, _radioObj.anchoredPosition) < _radioMinDistance)
         {
             _collectedCount++;
+            AudioManager.Instance.PlayAudio(_radioCollect);
             NextRadio();
         }
         else if(_done && Vector2.Distance(_rocketHolder.anchoredPosition, _planetObj.anchoredPosition) < _planetMinDistance)
         {
+            AudioManager.Instance.PlayAudio(_planetLand);
             Won();
         }
     }
@@ -70,8 +77,22 @@ public class SpaceMove : MiniGames
     {
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
+        if(vertical == 0)
+            vertical = 0.5f;
+        else if (vertical < 0)
+            vertical = -0.2f;
 
         _rocketAnimator.SetBool("Fire", vertical > 0);
+        if(vertical > 0 && !_boostPlaying)
+        {
+            _boostPlaying = true;
+            AudioManager.Instance.PlayRepeatAudio(_boostSound);
+        }
+        else if(vertical <= 0)
+        {
+            _boostPlaying = false;
+            AudioManager.Instance.StopAudio(_boostSound);
+        }
 
         float newRotationZ = _rocketHolder.localEulerAngles.z + (180 * Time.deltaTime * -horizontal);
 
@@ -94,9 +115,7 @@ public class SpaceMove : MiniGames
     }
     public override void ShowMiniGame()
     {
-        Debug.Log("START");
         gameObject.SetActive(true);
-        Debug.Log("START");
         _radioMinDistance = _radioObj.rect.width / 2;
         _planetMinDistance = _planetObj.rect.height / 2;
         _rocketAnimator = _rocketHolder.GetComponent<Animator>();
@@ -104,6 +123,7 @@ public class SpaceMove : MiniGames
 
     public override void Won()
     {
+        AudioManager.Instance.StopAudio(_boostSound);
         SceneManager.Instance.GetScene(true);
         gameObject.SetActive(false);
     }

@@ -12,6 +12,8 @@ public class SpaceToPlanet : MiniGames
     [SerializeField] private RectTransform _controlPoint;
     [SerializeField] private RectTransform _content;
     [SerializeField] private Image _fillImage;
+
+    [SerializeField] private GameObject _bg, _planet;
     private float _fillAmount = 0;
 
     private float _randomTimer;
@@ -21,6 +23,10 @@ public class SpaceToPlanet : MiniGames
 
 
     [SerializeField] private UIShake _uiShake;
+    [SerializeField] private AudioClip _backgroundNoise, _sfxInMiddle;
+
+    private float _sfxMiddleTimer = 0.2f;
+
     private bool _done;
     public override void HideMiniGame()
     {
@@ -61,6 +67,8 @@ public class SpaceToPlanet : MiniGames
         if (distance < _middleLimit) // Adjust the threshold as needed
         {
             _fillAmount += 0.3f * Time.deltaTime;
+            _bg.transform.localScale += Vector3.one * Time.deltaTime * 0.1f;
+            _planet.transform.localScale += Vector3.one * Time.deltaTime * 0.3f;
             if (_fillAmount > 1)
             {
                 _fillAmount = 1;
@@ -70,6 +78,13 @@ public class SpaceToPlanet : MiniGames
             }
             _fillImage.color = Color.Lerp(Color.red, Color.green, _fillAmount);
             _fillImage.fillAmount = _fillAmount;
+
+            _sfxMiddleTimer -= Time.deltaTime;
+            if(_sfxMiddleTimer <= 0)
+            {
+                _sfxMiddleTimer = 0.2f;
+                AudioManager.Instance.PlayAudio(_sfxInMiddle);
+            }
         }
     }
     private Vector3 ClampControl(Vector3 pos)
@@ -97,12 +112,14 @@ public class SpaceToPlanet : MiniGames
     }
     public override void ShowMiniGame()
     {
+        AudioManager.Instance.PlayRepeatAudio(_backgroundNoise);
         gameObject.SetActive(true);
         _middleLimit = _middlePoint.rect.width / 2;
     }
 
     public override void Won()
     {
+        AudioManager.Instance.StopAudio(_backgroundNoise);
         HideMiniGame();
         SceneManager.Instance.GetScene(true);
     }

@@ -31,7 +31,9 @@ public class SearchAround : MiniGames
     [SerializeField] private AudioClip _photoSFX;
     private int _photoIndex = 0;
 
-
+    [SerializeField] private AudioClip[] _step;
+    private int _stepIndex = 0;
+    private float _stepTimer;
 
     [SerializeField] private Image _backgroundImage;
     [SerializeField] private Sprite[] _backgroundImages;
@@ -70,6 +72,13 @@ public class SearchAround : MiniGames
         {
             _background.sizeDelta += new Vector2(192, 108) * Time.deltaTime;
             _filled += Time.deltaTime * 0.6f;
+            _stepTimer -= Time.deltaTime;
+            if(_stepTimer <= 0)
+            {
+                _stepTimer = 0.6f;
+                AudioManager.Instance.PlayAudio(_step[_stepIndex]);
+                _stepIndex = (_stepIndex + 1) % _step.Length;
+            }
         }
 
         float doneFillAmount = Mathf.InverseLerp(0, 5, _filled);

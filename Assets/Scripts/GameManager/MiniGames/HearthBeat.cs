@@ -1,20 +1,31 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEditor.PlayerSettings;
 
 public class HearthBeat : MiniGames
 {
     [SerializeField] private Image _bar;
     [SerializeField] private RectTransform _midPoint, _stopPoint;
     [SerializeField] private Image _hearth;
+    [SerializeField] private string[] _texts;
+    [SerializeField] private TextMeshProUGUI _tmp;
+    [SerializeField] private Image _bg;
+    [SerializeField] private Sprite[] _bgSprites;
+    [SerializeField] private AudioClip _beatSfx, _wrongSfx, _hitSfx;
+    [SerializeField] private Image _white;
+    
+    private int _bgLine;
     private Vector2 _limits;
     private float _midLimit;
     private bool _goRight = true;
-    private float _pressCount;
+    private float _pressCount, _lerpAmount;
     private bool _done;
     private bool _keyPressed;
+
+    private int _textLine;
+
 
     //presscouny += 0.15f
 
@@ -46,6 +57,7 @@ public class HearthBeat : MiniGames
     public override void ShowMiniGame()
     {
         gameObject.SetActive(true);
+        AudioManager.Instance.PlayRepeatAudio(_beatSfx);
         _pressCount = 0;
         _goRight = true;
         _stopPoint.anchoredPosition = new Vector2(_limits.x, _stopPoint.anchoredPosition.y);
@@ -65,6 +77,11 @@ public class HearthBeat : MiniGames
         if (_keyPressed)
             CheckMidPoint();
 
+
+        Color c = _white.color;
+        c.a -= Time.deltaTime;
+        _white.color = c;
+
     }
 
     private void CheckMidPoint()
@@ -72,18 +89,29 @@ public class HearthBeat : MiniGames
         float distance = Vector2.Distance(_stopPoint.anchoredPosition, _midPoint.anchoredPosition);
         if (distance <= _midLimit)
         {
-            _pressCount += 0.15f;
-            if (_pressCount > 1)
+            _pressCount += 1;
+            _lerpAmount += 1f / _texts.Length;
+            _tmp.text = _texts[_textLine++];
+            if (_pressCount >= _texts.Length)
             {
-                _pressCount = 1;
                 Won();
                 _done = true;
             }
-            _hearth.color = Color.Lerp(Color.black, Color.white, _pressCount);
+            _hearth.color = Color.Lerp(Color.black, Color.white, _lerpAmount);
             _hearth.GetComponent<Animator>().SetTrigger("BeatFast");
+
+            _bg.sprite = _bgSprites[_bgLine++];
+            AudioManager.Instance.PlayAudio(_hitSfx);
+
+            Color c = _white.color;
+            c.a = 0.85f;
+            _white.color = c;
         }
         else
+        {
             _keyPressed = false;
+            AudioManager.Instance.PlayAudio(_wrongSfx);
+        }
     }
 
     private void CheckKeyPressed()
@@ -95,7 +123,9 @@ public class HearthBeat : MiniGames
     }
     public override void Won()
     {
-
+        gameObject.SetActive(false);
+        AudioManager.Instance.StopAudio(_beatSfx);
+        SceneManager.Instance.GetScene(true);
     }
 
 }
